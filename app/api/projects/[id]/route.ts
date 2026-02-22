@@ -10,7 +10,14 @@ export async function GET(
 
     const project = await prisma.project.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        rawContent: true,
+        deckUrl: true,
+        createdAt: true,
+        updatedAt: true,
         slides: {
           orderBy: {
             position: 'asc',
