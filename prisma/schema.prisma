@@ -57,9 +57,9 @@ model User {
   email            String      @unique
   name             String?
   plan             Plan        @default(FREE)
-  stripeCustomerId String?     @unique
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  stripeCustomerId String?     @unique @map("stripe_customer_id")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
 
   projects         Project[]
   brandKits        BrandKit[]
@@ -70,15 +70,15 @@ model User {
 
 model BrandKit {
   id        String   @id @default(uuid())
-  userId    String
+  userId    String   @map("user_id")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
   colors    Json     // {primary, secondary, accent, text, bg, ...}
   fonts     Json     // {heading, body}
-  logoUrl   String?
+  logoUrl   String?  @map("logo_url")
   tone      String?  // formal, friendly, technical, executive
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   projects Project[]
 
@@ -88,9 +88,9 @@ model BrandKit {
 
 model Project {
   id             String        @id @default(uuid())
-  userId         String
+  userId         String        @map("user_id")
   user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  brandKitId     String?
+  brandKitId     String?       @map("brand_kit_id")
   brandKit       BrandKit?     @relation(fields: [brandKitId], references: [id], onDelete: SetNull)
   title          String
   status         ProjectStatus @default(DRAFT)
@@ -99,20 +99,20 @@ model Project {
   parameters Json? // {tone, style, audience, slideCount, focus, ...}
 
   // Content pipeline
-  inputContent   String? @db.Text // Raw text/document content
-  parsedContent  Json?            // Structured extraction from Claude
-  slideBlueprint Json?            // [{componentId, data, position}]
+  inputContent   String? @db.Text @map("input_content") // Raw text/document content
+  parsedContent  Json?   @map("parsed_content")          // Structured extraction from Claude
+  slideBlueprint Json?   @map("slide_blueprint")         // [{componentId, data, position}]
 
   // Outputs
-  pptxUrl    String? // Supabase Storage URL
+  pptxUrl    String? @map("pptx_url") // Supabase Storage URL
   thumbnails Json?   // Slide preview URLs
 
   // Editing
-  chatHistory Json? // [{role, message, timestamp}]
-  editHistory Json? // Version history for undo/redo
+  chatHistory Json? @map("chat_history") // [{role, message, timestamp}]
+  editHistory Json? @map("edit_history") // Version history for undo/redo
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   slides Slide[]
 
@@ -123,16 +123,16 @@ model Project {
 
 model Slide {
   id          String   @id @default(uuid())
-  projectId   String
+  projectId   String   @map("project_id")
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   position    Int
-  componentId String
+  componentId String   @map("component_id")
   component   Component @relation(fields: [componentId], references: [id])
   data        Json      // Data fed to component
-  imageUrls   Json?     // AI-generated images
+  imageUrls   Json?     @map("image_urls") // AI-generated images
   notes       String?   @db.Text // Speaker notes
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@unique([projectId, position])
   @@index([projectId])
@@ -150,30 +150,30 @@ model Component {
   tags         String[]          // For AI matching
 
   // Visual
-  thumbnailUrl String?
-  previewData  Json?             // Sample data for preview
+  thumbnailUrl String?           @map("thumbnail_url")
+  previewData  Json?             @map("preview_data") // Sample data for preview
 
   // Rendering
-  renderCode String @db.Text     // PptxGenJS render function
-  dataSchema Json               // Expected input shape (JSON Schema)
+  renderCode String @db.Text     @map("render_code") // PptxGenJS render function
+  dataSchema Json               @map("data_schema") // Expected input shape (JSON Schema)
 
   // Provenance
   source        ComponentSource
-  createdBy     String?          // userId if user-generated
+  createdBy     String?          @map("created_by") // userId if user-generated
   creator       User?            @relation("CreatedComponents", fields: [createdBy], references: [id], onDelete: SetNull)
-  extractedFrom String?          // projectId if auto-extracted
+  extractedFrom String?          @map("extracted_from") // projectId if auto-extracted
 
   // Sharing
-  isPublic   Boolean @default(true)
+  isPublic   Boolean @default(true) @map("is_public")
   popularity Int     @default(0) // Usage count
   rating     Float?              // User ratings (future)
 
   // AI Matching
-  useCases String[] // When to use this component
-  bestFor  String   @db.Text // Short description
+  useCases String[] @map("use_cases") // When to use this component
+  bestFor  String   @db.Text @map("best_for") // Short description
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   slides Slide[]
 
@@ -185,13 +185,13 @@ model Component {
 
 model ComponentExtraction {
   id                  String            @id @default(uuid())
-  projectId           String
+  projectId           String            @map("project_id")
   status              ExtractionStatus  @default(PENDING)
-  sampleDeckUrl       String
-  extractedComponents Json?             // [{name, description, renderCode}]
+  sampleDeckUrl       String            @map("sample_deck_url")
+  extractedComponents Json?             @map("extracted_components") // [{name, description, renderCode}]
   error               String?           @db.Text
-  createdAt           DateTime          @default(now())
-  completedAt         DateTime?
+  createdAt           DateTime          @default(now()) @map("created_at")
+  completedAt         DateTime?         @map("completed_at")
 
   @@index([status])
   @@map("component_extractions")
