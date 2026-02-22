@@ -4,10 +4,10 @@ import prisma from '@/lib/db/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const projectId = params.id;
+    const { id: projectId } = await params;
 
     // Get project
     const project = await prisma.project.findUnique({
