@@ -13,13 +13,18 @@ export async function GET(
       include: {
         slides: {
           orderBy: {
-            slideNumber: 'asc',
+            position: 'asc',
           },
           select: {
             id: true,
-            slideNumber: true,
-            componentName: true,
-            componentCategory: true,
+            position: true,
+            data: true,
+            component: {
+              select: {
+                name: true,
+                category: true,
+              },
+            },
           },
         },
       },
@@ -41,7 +46,12 @@ export async function GET(
         deckUrl: project.deckUrl,
         createdAt: project.createdAt.toISOString(),
         updatedAt: project.updatedAt.toISOString(),
-        slides: project.slides,
+        slides: project.slides.map((slide) => ({
+          id: slide.id,
+          slideNumber: slide.position,
+          componentName: slide.component.name,
+          componentCategory: slide.component.category,
+        })),
       },
     });
   } catch (error: any) {
