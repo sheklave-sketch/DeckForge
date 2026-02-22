@@ -1,0 +1,198 @@
+// Prisma schema for DeckForge V2
+// Database: Supabase PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum ProjectStatus {
+  DRAFT
+  GENERATING
+  READY
+  EDITING
+  EXPORTED
+}
+
+enum ComponentCategory {
+  TITLE       // Cover, section divider
+  NARRATIVE   // Text-heavy
+  DATA        // Charts, KPIs, metrics
+  COMPARISON  // Before/after, vs
+  PROCESS     // Flow, timeline
+  FRAMEWORK   // SWOT, 2x2, pyramid
+  VISUAL      // Image-heavy, diagrams
+  TABLE       // Data tables
+  CLOSING     // Thank you, contact
+}
+
+enum ComponentSource {
+  CORE         // Hand-coded by us
+  USER_UPLOAD  // Extracted from user's sample deck
+  AI_GENERATED // Generated from description
+  COMMUNITY    // Shared by other users
+}
+
+enum ExtractionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// Models
+model User {
+  id               String      @id @default(uuid())
+  email            String      @unique
+  name             String?
+  plan             Plan        @default(FREE)
+  stripeCustomerId String?     @unique
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  projects         Project[]
+  brandKits        BrandKit[]
+  components       Component[] @relation("CreatedComponents")
+
+  @@map("users")
+}
+
+model BrandKit {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  colors    Json     // {primary, secondary, accent, text, bg, ...}
+  fonts     Json     // {heading, body}
+  logoUrl   String?
+  tone      String?  // formal, friendly, technical, executive
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects Project[]
+
+  @@index([userId])
+  @@map("brand_kits")
+}
+
+model Project {
+  id             String        @id @default(uuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brandKitId     String?
+  brandKit       BrandKit?     @relation(fields: [brandKitId], references: [id], onDelete: SetNull)
+  title          String
+  status         ProjectStatus @default(DRAFT)
+
+  // Generation parameters
+  parameters Json? // {tone, style, audience, slideCount, focus, ...}
+
+  // Content pipeline
+  inputContent   String? @db.Text // Raw text/document content
+  parsedContent  Json?            // Structured extraction from Claude
+  slideBlueprint Json?            // [{componentId, data, position}]
+
+  // Outputs
+  pptxUrl    String? // Supabase Storage URL
+  thumbnails Json?   // Slide preview URLs
+
+  // Editing
+  chatHistory Json? // [{role, message, timestamp}]
+  editHistory Json? // Version history for undo/redo
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  slides Slide[]
+
+  @@index([userId, status])
+  @@index([createdAt])
+  @@map("projects")
+}
+
+model Slide {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  position    Int
+  componentId String
+  component   Component @relation(fields: [componentId], references: [id])
+  data        Json      // Data fed to component
+  imageUrls   Json?     // AI-generated images
+  notes       String?   @db.Text // Speaker notes
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([projectId, position])
+  @@index([projectId])
+  @@map("slides")
+}
+
+// THE KEY MODEL - Dynamic Component Library
+model Component {
+  id           String            @id @default(uuid())
+
+  // Metadata
+  name         String
+  description  String            @db.Text
+  category     ComponentCategory
+  tags         String[]          // For AI matching
+
+  // Visual
+  thumbnailUrl String?
+  previewData  Json?             // Sample data for preview
+
+  // Rendering
+  renderCode String @db.Text     // PptxGenJS render function
+  dataSchema Json               // Expected input shape (JSON Schema)
+
+  // Provenance
+  source        ComponentSource
+  createdBy     String?          // userId if user-generated
+  creator       User?            @relation("CreatedComponents", fields: [createdBy], references: [id], onDelete: SetNull)
+  extractedFrom String?          // projectId if auto-extracted
+
+  // Sharing
+  isPublic   Boolean @default(true)
+  popularity Int     @default(0) // Usage count
+  rating     Float?              // User ratings (future)
+
+  // AI Matching
+  useCases String[] // When to use this component
+  bestFor  String   @db.Text // Short description
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  slides Slide[]
+
+  @@index([category, isPublic])
+  @@index([popularity])
+  @@index([createdBy])
+  @@map("components")
+}
+
+model ComponentExtraction {
+  id                  String            @id @default(uuid())
+  projectId           String
+  status              ExtractionStatus  @default(PENDING)
+  sampleDeckUrl       String
+  extractedComponents Json?             // [{name, description, renderCode}]
+  error               String?           @db.Text
+  createdAt           DateTime          @default(now())
+  completedAt         DateTime?
+
+  @@index([status])
+  @@map("component_extractions")
+}
