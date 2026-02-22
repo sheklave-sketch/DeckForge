@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         id: true,
         title: true,
         status: true,
-        deckUrl: true,
+        pptxUrl: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       id: project.id,
       title: project.title,
       status: project.status,
-      deckUrl: project.deckUrl,
+      pptxUrl: project.pptxUrl,
       slideCount: project._count.slides,
       createdAt: project.createdAt.toISOString(),
       updatedAt: project.updatedAt.toISOString(),
