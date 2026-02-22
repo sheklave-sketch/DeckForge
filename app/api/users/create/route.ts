@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
         name,
         plan,
         stripeCustomerId: null,
-        decksThisMonth: 0,
       },
     });
 
@@ -31,13 +30,18 @@ export async function POST(request: NextRequest) {
       data: {
         userId: user.id,
         name: 'Default Brand Kit',
-        primaryColor: '#2563eb', // blue-600
-        secondaryColor: '#7c3aed', // purple-600
-        accentColor: '#10b981', // green-500
-        textColor: '#1e293b', // slate-800
-        backgroundColor: '#ffffff',
-        fontFamily: 'Arial',
-        isDefault: true,
+        colors: {
+          primary: '#2563eb',
+          secondary: '#7c3aed',
+          accent: '#10b981',
+          text: '#1e293b',
+          background: '#ffffff',
+        },
+        fonts: {
+          heading: 'Arial',
+          body: 'Arial',
+        },
+        tone: 'formal',
       },
     });
 
