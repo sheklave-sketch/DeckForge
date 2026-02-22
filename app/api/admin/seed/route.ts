@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase/client';
+import { getSupabaseAdmin } from '@/lib/supabase/client';
 import { SEED_COMPONENTS } from '@/lib/components/seed-data';
 
 export async function POST(request: NextRequest) {
@@ -14,6 +14,8 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Delete existing CORE components
     const { error: deleteError } = await supabaseAdmin

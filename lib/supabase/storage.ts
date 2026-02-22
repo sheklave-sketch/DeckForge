@@ -1,5 +1,5 @@
 // Supabase storage helpers for file uploads
-import { supabaseAdmin } from './client';
+import { getSupabaseAdmin } from './client';
 
 const BUCKETS = {
   DECKS: 'decks',
@@ -22,6 +22,7 @@ export async function uploadFile(
   file: Buffer | Blob,
   contentType: string
 ): Promise<string> {
+  const supabaseAdmin = getSupabaseAdmin();
   const bucketName = BUCKETS[bucket];
 
   const { data, error } = await supabaseAdmin.storage
@@ -50,6 +51,7 @@ export async function deleteFile(
   bucket: keyof typeof BUCKETS,
   path: string
 ): Promise<void> {
+  const supabaseAdmin = getSupabaseAdmin();
   const bucketName = BUCKETS[bucket];
 
   const { error } = await supabaseAdmin.storage
@@ -69,6 +71,7 @@ export async function getSignedUrl(
   path: string,
   expiresIn: number = 3600
 ): Promise<string> {
+  const supabaseAdmin = getSupabaseAdmin();
   const bucketName = BUCKETS[bucket];
 
   const { data, error } = await supabaseAdmin.storage
