@@ -14,8 +14,8 @@ export async function GET(
         id: true,
         title: true,
         status: true,
-        rawContent: true,
-        deckUrl: true,
+        inputContent: true,
+        pptxUrl: true,
         createdAt: true,
         updatedAt: true,
         slides: {
@@ -49,8 +49,8 @@ export async function GET(
         id: project.id,
         title: project.title,
         status: project.status,
-        rawContent: project.rawContent,
-        deckUrl: project.deckUrl,
+        inputContent: project.inputContent,
+        pptxUrl: project.pptxUrl,
         createdAt: project.createdAt.toISOString(),
         updatedAt: project.updatedAt.toISOString(),
         slides: project.slides.map((slide) => ({
