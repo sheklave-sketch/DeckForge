@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       data_schema: comp.dataSchema,
       source: comp.source,
       is_public: comp.isPublic,
-      usage_count: 0,
+      popularity: 0,
       created_by: null, // System-created
       use_cases: comp.useCases,
       best_for: comp.bestFor,
