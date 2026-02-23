@@ -51,14 +51,25 @@ export async function parseContent(
 
 Parse the provided content into structured sections suitable for a presentation.
 
+CRITICAL REQUIREMENTS:
+- Target: ${Math.ceil(slideCount * 0.7)}-${slideCount} sections total
+- Each section becomes ONE slide
+- Break content into GRANULAR, focused sections
+- Even short content should be expanded into multiple angles/perspectives
+
 Guidelines:
-- Identify 3-7 main sections based on content
-- Extract data points (metrics, KPIs, financials) where present
-- Classify each section by type: data, narrative, framework, timeline, comparison, or process
-- Assign priority (1-5) based on importance and relevance
+- Separate different topics, themes, or concepts into distinct sections
+- For data/metrics: create dedicated sections per insight
+- For narratives: break into intro, body, conclusion sections
+- For frameworks: separate into model overview + individual components
+- Extract and highlight data points (metrics, KPIs, financials)
+- Classify each section type: data, narrative, framework, timeline, comparison, or process
+- Assign priority (1-5) based on importance
 - Consider tone: ${tone}, audience: ${audience}, style: ${style}
-- Target ${slideCount} total slides (sections will be split into slides later)
+- Add context and expand brief points into full sections with "content" field populated
 ${focus.length > 0 ? `- Focus on: ${focus.join(', ')}` : ''}
+
+IMPORTANT: Fill the "content" field with detailed text for each section (not empty).
 
 Return ONLY valid JSON with this exact structure:
 {
@@ -67,7 +78,7 @@ Return ONLY valid JSON with this exact structure:
     {
       "title": "Section name",
       "type": "data|narrative|framework|timeline|comparison|process",
-      "content": "Main text summary",
+      "content": "Detailed text summary - MUST be populated",
       "dataPoints": [{"label": "Metric name", "value": "Value", "change": "±X%"}],
       "items": ["List item 1", "List item 2"],
       "priority": 1-5

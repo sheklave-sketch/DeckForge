@@ -17,8 +17,8 @@ interface Project {
   id: string;
   title: string;
   status: 'DRAFT' | 'GENERATING' | 'READY' | 'ERROR';
-  rawContent: string;
-  deckUrl: string | null;
+  inputContent: string;
+  pptxUrl: string | null;
   createdAt: string;
   updatedAt: string;
   slides: Slide[];
@@ -146,7 +146,7 @@ export default function ProjectPage() {
           </Link>
           <div className="flex items-center space-x-4">
             {getStatusDisplay()}
-            {project.status === 'READY' && project.deckUrl && (
+            {project.status === 'READY' && project.pptxUrl && (
               <a
                 href={`/api/projects/${project.id}/download`}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center space-x-2"
@@ -234,7 +234,7 @@ export default function ProjectPage() {
                 <h2 className="text-lg font-semibold text-slate-900 mb-4">Original Content</h2>
                 <div className="prose prose-sm max-w-none">
                   <pre className="whitespace-pre-wrap text-sm text-slate-700 bg-slate-50 p-4 rounded-lg">
-                    {project.rawContent}
+                    {project.inputContent}
                   </pre>
                 </div>
               </div>
