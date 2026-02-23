@@ -9,16 +9,35 @@ import prisma from '@/lib/db/prisma';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const {
-      projectId,
-      content,
-      parameters = {},
-      brandKitId,
-    } = body;
 
-    if (!projectId || !content) {
+    // Support both old format (flat fields) and new format (content + parameters)
+    const projectId = body.projectId;
+    const content = body.content || body.rawContent || '';
+    const parameters = body.parameters || {
+      tone: body.tone,
+      audience: body.audience,
+      style: body.style,
+      slideCount: body.slideCount,
+    };
+    const brandKitId = body.brandKitId;
+
+    if (!projectId) {
       return NextResponse.json(
-        { error: 'Missing required fields: projectId, content' },
+        { error: 'Missing required field: projectId', receivedKeys: Object.keys(body) },
+        { status: 400 }
+      );
+    }
+
+    // If no content provided, try to get it from the project record
+    let finalContent = content;
+    if (!finalContent) {
+      const project = await prisma.project.findUnique({ where: { id: projectId }, select: { inputContent: true } });
+      finalContent = project?.inputContent || '';
+    }
+
+    if (!finalContent) {
+      return NextResponse.json(
+        { error: 'No content provided. Please enter content in the text area.', receivedKeys: Object.keys(body) },
         { status: 400 }
       );
     }
@@ -31,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Parse content with AI
     console.log('[Generate] Parsing content...');
-    const parsedContent = await parseContent(content, parameters);
+    const parsedContent = await parseContent(finalContent, parameters);
 
     // Save parsed content
     await prisma.project.update({
