@@ -99,7 +99,8 @@ async function renderSlide(
   // Execute render function in controlled context
   try {
     // Create safe execution context
-    const renderFn = new Function('slide', 'data', 'brand', renderCode);
+    // renderCode defines a function named 'render', so we need to call it
+    const renderFn = new Function('slide', 'data', 'brand', `${renderCode}; render(slide, data, brand);`);
 
     // Execute render function
     renderFn(slide, data, brand);
