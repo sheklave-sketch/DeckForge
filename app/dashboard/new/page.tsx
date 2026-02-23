@@ -38,6 +38,7 @@ export default function NewProjectPage() {
           email: session.user.email,
           name: session.user.user_metadata?.full_name || session.user.email,
           title,
+          content,
         }),
       });
 

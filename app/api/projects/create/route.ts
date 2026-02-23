@@ -6,6 +6,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { userId, title, brandKitId, email, name } = body;
+    const content = body.content || body.rawContent || null;
 
     if (!userId || !title) {
       return NextResponse.json(
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
         title,
         brandKitId: brandKitId || null,
         status: 'DRAFT',
+        inputContent: content,
       },
     });
 
