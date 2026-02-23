@@ -35,8 +35,9 @@ export default function NewProjectPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.full_name || session.user.email,
           title,
-          rawContent: content,
         }),
       });
 
@@ -53,11 +54,8 @@ export default function NewProjectPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           projectId: project.id,
-          userId: session.user.id,
-          tone,
-          audience,
-          style,
-          slideCount,
+          content,
+          parameters: { tone, audience, style, slideCount },
         }),
       });
 
